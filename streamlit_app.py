@@ -1,8 +1,9 @@
 import streamlit as st
 import requests
 from bs4 import BeautifulSoup
+import streamlit.components.v1 as components
 
-st.title("Website Masthead Extractor")
+st.title("Website Masthead Extractor and Visualizer")
 
 # Prompt the user to input a URL
 url = st.text_input("Enter the website URL (e.g., https://www.example.com):", "")
@@ -20,12 +21,11 @@ if url:
 
         # Try common masthead/header selectors
         masthead = None
-        # Attempt a few different selectors commonly used:
         selectors = [
-            "#masthead",           # An element with id="masthead"
-            ".masthead",           # An element with class="masthead"
-            "header",              # A <header> element, if it exists
-            ".site-header"         # Another common class name for headers
+            "#masthead",
+            ".masthead",
+            "header",
+            ".site-header"
         ]
 
         for selector in selectors:
@@ -37,14 +37,44 @@ if url:
             st.subheader("Masthead HTML:")
             st.code(masthead.prettify(), language='html')
 
-            # If you'd like to display images from the masthead, for example:
-            # Find all images in the masthead
+            # Render a visualization of the masthead in an embedded frame
+            st.subheader("Masthead Visualization:")
+
+            # We create a minimal HTML structure to display the masthead snippet.
+            # External CSS may not be fully available, but we add basic styling for context.
+            rendered_html = f"""
+            <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Masthead Preview</title>
+                    <style>
+                        body {{
+                            margin: 0;
+                            padding: 0;
+                            font-family: Arial, sans-serif;
+                        }}
+                        header, .masthead, #masthead, .site-header {{
+                            border: 1px solid #ccc;
+                            padding: 10px;
+                            text-align: center;
+                            font-size: 1.2em;
+                        }}
+                    </style>
+                </head>
+                <body>{masthead}</body>
+            </html>
+            """
+
+            # Use Streamlit's components.html to render the snippet
+            components.html(rendered_html, height=300, scrolling=True)
+
+            # If there are images in the masthead, display them below
             images = masthead.find_all("img", src=True)
             if images:
                 st.subheader("Masthead Images:")
                 for img in images:
                     img_src = img['src']
-                    # If the image source is relative, convert to absolute
+                    # Convert relative URLs to absolute
                     if img_src.startswith("//"):
                         img_src = "https:" + img_src
                     elif img_src.startswith("/"):
